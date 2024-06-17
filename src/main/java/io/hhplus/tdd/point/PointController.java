@@ -2,6 +2,7 @@ package io.hhplus.tdd.point;
 
 import io.hhplus.tdd.domain.PointHistory;
 import io.hhplus.tdd.domain.UserPoint;
+import io.hhplus.tdd.point.dto.FindUserPointApiResDto;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,10 +22,10 @@ public class PointController {
      * TODO - 특정 유저의 포인트를 조회하는 기능을 작성해주세요.
      */
     @GetMapping("{id}")
-    public UserPoint point(
+    public FindUserPointApiResDto point(
             @PathVariable long id
     ) {
-        return new UserPoint(1, 0, 0);
+        return pointService.findPointById(id);
     }
 
     /**
