@@ -5,10 +5,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -59,13 +61,24 @@ class PointControllerTest {
 
     @Test
     @DisplayName("포인트를 충전한다.")
-    void charge() {
+    void charge() throws Exception {
         // given
+        long id = 1L;
+        long amount = 1000L;
 
         // when
+        ResultActions result = mockMvc.perform(patch(PATH + "/" + id + "/charge")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(String.valueOf(1000))
+        );
 
         // then
-
+        result.andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(id))
+                .andExpect(jsonPath("$.point").value(amount))
+                .andExpect(jsonPath("$.updateMillis").value(0))
+        ;
     }
 
     @Test
