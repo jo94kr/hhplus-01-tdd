@@ -69,7 +69,7 @@ class PointControllerTest {
         // when
         ResultActions result = mockMvc.perform(patch(PATH + "/" + id + "/charge")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(String.valueOf(1000))
+                .content(String.valueOf(amount))
         );
 
         // then
@@ -83,12 +83,23 @@ class PointControllerTest {
 
     @Test
     @DisplayName("포인트를 사용한다.")
-    void use() {
+    void use() throws Exception {
         // given
+        long id = 1L;
+        long amount = 100L;
 
         // when
+        ResultActions result = mockMvc.perform(patch(PATH + "/" + id + "/use")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(String.valueOf(amount))
+        );
 
         // then
-
+        result.andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(id))
+                .andExpect(jsonPath("$.point").value(900))
+                .andExpect(jsonPath("$.updateMillis").value(0))
+        ;
     }
 }
