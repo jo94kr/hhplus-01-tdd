@@ -43,13 +43,18 @@ class PointControllerTest {
 
     @Test
     @DisplayName("포인트 내역을 조회한다.")
-    void history() {
+    void history() throws Exception {
         // given
+        long id = 1L;
 
         // when
+        ResultActions result = mockMvc.perform(get(PATH + "/" + id + "/histories"));
 
         // then
-
+        result.andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+        ;
     }
 
     @Test
