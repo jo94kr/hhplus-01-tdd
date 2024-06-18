@@ -6,5 +6,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface UserPointRepository {
 
-    UserPoint findById(Long id);
+    UserPoint findById(long id);
+
+    UserPoint save(long id, long point);
 }

@@ -1,7 +1,6 @@
 package io.hhplus.tdd.point;
 
-import io.hhplus.tdd.domain.PointHistory;
-import io.hhplus.tdd.domain.UserPoint;
+import io.hhplus.tdd.point.dto.FindPointHistoryApiResDto;
 import io.hhplus.tdd.point.dto.FindUserPointApiResDto;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -25,6 +24,7 @@ public class PointController {
     public FindUserPointApiResDto point(
             @PathVariable long id
     ) {
+        log.info("id: {}", id);
         return pointService.findPointById(id);
     }
 
@@ -32,31 +32,34 @@ public class PointController {
      * TODO - 특정 유저의 포인트 충전/이용 내역을 조회하는 기능을 작성해주세요.
      */
     @GetMapping("{id}/histories")
-    public List<PointHistory> history(
+    public List<FindPointHistoryApiResDto> history(
             @PathVariable long id
     ) {
-        return List.of();
+        log.info("id: {}", id);
+        return pointService.findAllPointById(id);
     }
 
     /**
      * TODO - 특정 유저의 포인트를 충전하는 기능을 작성해주세요.
      */
     @PatchMapping("{id}/charge")
-    public UserPoint charge(
+    public FindUserPointApiResDto charge(
             @PathVariable long id,
             @RequestBody long amount
     ) {
-        return new UserPoint(1, 1000, 0);
+        log.info("id: {}, amount: {}", id, amount);
+        return pointService.charge(id, amount);
     }
 
     /**
      * TODO - 특정 유저의 포인트를 사용하는 기능을 작성해주세요.
      */
     @PatchMapping("{id}/use")
-    public UserPoint use(
+    public FindUserPointApiResDto use(
             @PathVariable long id,
             @RequestBody long amount
     ) {
-        return new UserPoint(1, 900, 0);
+        log.info("id: {}, amount: {}", id, amount);
+        return pointService.use(id, amount);
     }
 }
