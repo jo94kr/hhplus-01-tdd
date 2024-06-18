@@ -19,6 +19,11 @@ public class PointService {
     private final PointHistoryRepository pointHistoryRepository;
     private final UserPointRepository userPointRepository;
 
+    /**
+     * 포인트 조회
+     * @param id 유저 ID
+     * @return FindUserPointApiResDto
+     */
     public FindUserPointApiResDto findPointById(long id) {
         PointValidation.idValid(id);
 
@@ -29,6 +34,11 @@ public class PointService {
         return FindUserPointApiResDto.of(userPoint);
     }
 
+    /**
+     * 포인트 내역 조회
+     * @param id 유저 ID
+     * @return List<FindPointHistoryApiResDto>
+     */
     public List<FindPointHistoryApiResDto> findAllPointById(long id) {
         PointValidation.idValid(id);
 
@@ -40,6 +50,12 @@ public class PointService {
                 .toList();
     }
 
+    /**
+     * 포인트 충전
+     * @param id 유저 ID
+     * @param amount 충전 포인트
+     * @return FindUserPointApiResDto
+     */
     public FindUserPointApiResDto charge(long id, long amount) {
         PointValidation.idValid(id);
         PointValidation.amountValid(amount);
@@ -53,6 +69,12 @@ public class PointService {
         return FindUserPointApiResDto.of(userPoint);
     }
 
+    /**
+     * 포인트 사용
+     * @param id 유저 ID
+     * @param amount 사용 포인트
+     * @return FindUserPointApiResDto
+     */
     public FindUserPointApiResDto use(long id, long amount) {
         PointValidation.idValid(id);
         PointValidation.amountValid(amount);
