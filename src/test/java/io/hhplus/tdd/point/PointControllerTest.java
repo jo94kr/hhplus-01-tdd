@@ -3,7 +3,6 @@ package io.hhplus.tdd.point;
 import io.hhplus.tdd.point.dto.FindUserPointApiResDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -68,8 +67,11 @@ class PointControllerTest {
         // given
         long id = 1L;
         long amount = 1000L;
+        long updateMillis = System.currentTimeMillis();
 
         // when
+        FindUserPointApiResDto userPointApiResDto = new FindUserPointApiResDto(id, amount, updateMillis);
+        when(pointService.charge(id, amount)).thenReturn(userPointApiResDto);
         ResultActions result = mockMvc.perform(patch(PATH + "/" + id + "/charge")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(String.valueOf(amount))
@@ -80,7 +82,7 @@ class PointControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(id))
                 .andExpect(jsonPath("$.point").value(amount))
-                .andExpect(jsonPath("$.updateMillis").value(0))
+                .andExpect(jsonPath("$.updateMillis").value(updateMillis))
         ;
     }
 
@@ -90,8 +92,11 @@ class PointControllerTest {
         // given
         long id = 1L;
         long amount = 100L;
+        long updateMillis = System.currentTimeMillis();
 
         // when
+        when(pointService.findPointById(id)).thenReturn(new FindUserPointApiResDto(id, 1000L, System.currentTimeMillis()));
+        when(pointService.use(id, amount)).thenReturn(new FindUserPointApiResDto(id, 900L, updateMillis));
         ResultActions result = mockMvc.perform(patch(PATH + "/" + id + "/use")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(String.valueOf(amount))
@@ -102,7 +107,7 @@ class PointControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(id))
                 .andExpect(jsonPath("$.point").value(900))
-                .andExpect(jsonPath("$.updateMillis").value(0))
+                .andExpect(jsonPath("$.updateMillis").value(updateMillis))
         ;
     }
 }
