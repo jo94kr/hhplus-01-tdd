@@ -7,6 +7,11 @@ public record UserPoint(
         long point,
         long updateMillis
 ) {
+    public UserPoint {
+        if (this.id() < 0) {
+            throw new IllegalArgumentException("id is an invalid.");
+        }
+    }
 
     public static UserPoint empty(long id) {
         return new UserPoint(id, 0, System.currentTimeMillis());

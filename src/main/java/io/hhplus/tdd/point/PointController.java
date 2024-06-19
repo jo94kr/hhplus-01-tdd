@@ -22,7 +22,7 @@ public class PointController {
      */
     @GetMapping("{id}")
     public FindUserPointApiResDto point(
-            @PathVariable long id
+            @PathVariable(name = "id") long id
     ) {
         log.info("id: {}", id);
         return pointService.findPointById(id);
@@ -33,7 +33,7 @@ public class PointController {
      */
     @GetMapping("{id}/histories")
     public List<FindPointHistoryApiResDto> history(
-            @PathVariable long id
+            @PathVariable(name = "id") long id
     ) {
         log.info("id: {}", id);
         return pointService.findAllPointById(id);
@@ -42,9 +42,9 @@ public class PointController {
     /**
      * TODO - 특정 유저의 포인트를 충전하는 기능을 작성해주세요.
      */
-    @PatchMapping("{id}/charge")
+    @PatchMapping("/{id}/charge")
     public FindUserPointApiResDto charge(
-            @PathVariable long id,
+            @PathVariable(name = "id") long id,
             @RequestBody long amount
     ) {
         log.info("id: {}, amount: {}", id, amount);
@@ -56,7 +56,7 @@ public class PointController {
      */
     @PatchMapping("{id}/use")
     public FindUserPointApiResDto use(
-            @PathVariable long id,
+            @PathVariable(name = "id") long id,
             @RequestBody long amount
     ) {
         log.info("id: {}, amount: {}", id, amount);

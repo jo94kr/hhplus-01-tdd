@@ -14,9 +14,6 @@ public class UserPointRepositoryImpl implements UserPointRepository {
 
     @Override
     public UserPoint findById(long id) {
-        if (id < 0) {
-            throw new IllegalArgumentException("id is an invalid.");
-        }
         UserPoint userPoint = userPointTable.selectById(id);
         if (userPoint == null) {
             throw new NotFoundException("user not found");
@@ -26,12 +23,6 @@ public class UserPointRepositoryImpl implements UserPointRepository {
 
     @Override
     public UserPoint save(UserPoint userPoint) {
-        if (userPoint.id() < 0) {
-            throw new IllegalArgumentException("id is an invalid.");
-        }
-        if (userPoint.point() <= 0) {
-            throw new IllegalArgumentException("amount is an invalid.");
-        }
         return userPointTable.insertOrUpdate(userPoint.id(), userPoint.point());
     }
 }
