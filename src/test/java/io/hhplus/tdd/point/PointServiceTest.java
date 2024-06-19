@@ -5,7 +5,6 @@ import io.hhplus.tdd.domain.TransactionType;
 import io.hhplus.tdd.domain.UserPoint;
 import io.hhplus.tdd.exception.NotFoundException;
 import io.hhplus.tdd.point.dto.FindPointHistoryApiResDto;
-import io.hhplus.tdd.point.dto.FindUserPointApiResDto;
 import io.hhplus.tdd.repository.PointHistoryRepository;
 import io.hhplus.tdd.repository.UserPointRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -19,7 +18,6 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.when;
@@ -44,7 +42,7 @@ class PointServiceTest {
         given(userPointRepository.findById(id)).willReturn(UserPoint.empty(id));
 
         // when
-        FindUserPointApiResDto result = pointService.findPointById(id);
+        UserPoint result = pointService.findPointById(id);
 
         // then
         assertThat(result.id()).isEqualTo(id);
@@ -103,7 +101,7 @@ class PointServiceTest {
         // when
         when(userPointRepository.findById(id)).thenReturn(userPoint);
         when(userPointRepository.save(userPoint.charge(amount))).thenReturn(new UserPoint(id, amount, anyLong()));
-        FindUserPointApiResDto result = pointService.charge(id, amount);
+        UserPoint result = pointService.charge(id, amount);
 
         // then
         assertThat(result.point()).isEqualTo(amount);
@@ -150,7 +148,7 @@ class PointServiceTest {
         // when
         when(userPointRepository.findById(id)).thenReturn(currentUserPoint);
         when(userPointRepository.save(currentUserPoint.use(amount))).thenReturn(new UserPoint(id, 0L, anyLong()));
-        FindUserPointApiResDto result = pointService.use(id, amount);
+        UserPoint result = pointService.use(id, amount);
 
         // then
         assertThat(result.point()).isZero();

@@ -1,6 +1,6 @@
 package io.hhplus.tdd.point;
 
-import io.hhplus.tdd.point.dto.FindUserPointApiResDto;
+import io.hhplus.tdd.domain.UserPoint;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +34,7 @@ class PointControllerTest {
         long id = 1L;
 
         // when
-        FindUserPointApiResDto userPointApiResDto = new FindUserPointApiResDto(id, 0L, System.currentTimeMillis());
+        UserPoint userPointApiResDto = new UserPoint(id, 0L, System.currentTimeMillis());
         when(pointService.findPointById(id)).thenReturn(userPointApiResDto);
         ResultActions result = mockMvc.perform(get(PATH + "/" + id));
 
@@ -70,7 +70,7 @@ class PointControllerTest {
         long updateMillis = System.currentTimeMillis();
 
         // when
-        FindUserPointApiResDto userPointApiResDto = new FindUserPointApiResDto(id, amount, updateMillis);
+        UserPoint userPointApiResDto = new UserPoint(id, amount, updateMillis);
         when(pointService.charge(id, amount)).thenReturn(userPointApiResDto);
         ResultActions result = mockMvc.perform(patch(PATH + "/" + id + "/charge")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -95,8 +95,8 @@ class PointControllerTest {
         long updateMillis = System.currentTimeMillis();
 
         // when
-        when(pointService.findPointById(id)).thenReturn(new FindUserPointApiResDto(id, 1000L, System.currentTimeMillis()));
-        when(pointService.use(id, amount)).thenReturn(new FindUserPointApiResDto(id, 900L, updateMillis));
+        when(pointService.findPointById(id)).thenReturn(new UserPoint(id, 1000L, System.currentTimeMillis()));
+        when(pointService.use(id, amount)).thenReturn(new UserPoint(id, 900L, updateMillis));
         ResultActions result = mockMvc.perform(patch(PATH + "/" + id + "/use")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(String.valueOf(amount))

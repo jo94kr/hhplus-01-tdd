@@ -25,7 +25,7 @@ public class PointController {
             @PathVariable(name = "id") long id
     ) {
         log.info("id: {}", id);
-        return pointService.findPointById(id);
+        return FindUserPointApiResDto.of(pointService.findPointById(id));
     }
 
     /**
@@ -48,7 +48,7 @@ public class PointController {
             @RequestBody long amount
     ) {
         log.info("id: {}, amount: {}", id, amount);
-        return pointService.charge(id, amount);
+        return FindUserPointApiResDto.of(pointService.charge(id, amount));
     }
 
     /**
@@ -60,6 +60,6 @@ public class PointController {
             @RequestBody long amount
     ) {
         log.info("id: {}, amount: {}", id, amount);
-        return pointService.use(id, amount);
+        return FindUserPointApiResDto.of(pointService.use(id, amount));
     }
 }

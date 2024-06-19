@@ -4,7 +4,6 @@ import io.hhplus.tdd.domain.PointHistory;
 import io.hhplus.tdd.domain.TransactionType;
 import io.hhplus.tdd.domain.UserPoint;
 import io.hhplus.tdd.point.dto.FindPointHistoryApiResDto;
-import io.hhplus.tdd.point.dto.FindUserPointApiResDto;
 import io.hhplus.tdd.repository.PointHistoryRepository;
 import io.hhplus.tdd.repository.UserPointRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,13 +22,11 @@ public class PointService {
      * 포인트 조회
      *
      * @param id 유저 ID
-     * @return FindUserPointApiResDto
+     * @return UserPoint
      */
-    public FindUserPointApiResDto findPointById(long id) {
+    public UserPoint findPointById(long id) {
         // 포인트 조회
-        UserPoint userPoint = userPointRepository.findById(id);
-
-        return FindUserPointApiResDto.from(userPoint);
+        return userPointRepository.findById(id);
     }
 
     /**
@@ -52,9 +49,9 @@ public class PointService {
      *
      * @param id     유저 ID
      * @param amount 충전 포인트
-     * @return FindUserPointApiResDto
+     * @return UserPoint
      */
-    public FindUserPointApiResDto charge(long id, long amount) {
+    public UserPoint charge(long id, long amount) {
         // 기존 포인트 조회
         UserPoint userPoint = userPointRepository.findById(id);
 
@@ -64,7 +61,7 @@ public class PointService {
         // 충전이력 등록
         pointHistoryRepository.save(id, amount, TransactionType.CHARGE, System.currentTimeMillis());
 
-        return FindUserPointApiResDto.from(result);
+        return result;
     }
 
     /**
@@ -72,9 +69,9 @@ public class PointService {
      *
      * @param id     유저 ID
      * @param amount 사용 포인트
-     * @return FindUserPointApiResDto
+     * @return UserPoint
      */
-    public FindUserPointApiResDto use(long id, long amount) {
+    public UserPoint use(long id, long amount) {
         // 기존 포인트 조회
         UserPoint userPoint = userPointRepository.findById(id);
 
@@ -84,6 +81,6 @@ public class PointService {
         // 차감이력 등록
         pointHistoryRepository.save(id, amount, TransactionType.USE, result.updateMillis());
 
-        return FindUserPointApiResDto.from(result);
+        return result;
     }
 }
