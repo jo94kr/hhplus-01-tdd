@@ -19,6 +19,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.when;
@@ -54,9 +55,13 @@ class PointServiceTest {
     @DisplayName("존재하지 않는 사용자의 포인트를 조회시 예외 발생")
     void findPointByNonExistentId() {
         // given
+        long id = 100L;
+
         // when
+        when(userPointRepository.findById(id)).thenThrow(NotFoundException.class);
+
         // then
-        assertThrows(NotFoundException.class, () -> pointService.findPointById(anyLong()));
+        assertThrows(NotFoundException.class, () -> pointService.findPointById(id));
     }
 
     @Test
@@ -66,6 +71,8 @@ class PointServiceTest {
         long id = -1L;
 
         // when
+        when(userPointRepository.findById(id)).thenThrow(IllegalArgumentException.class);
+
         // then
         assertThrows(IllegalArgumentException.class, () -> pointService.findPointById(id));
     }
@@ -76,8 +83,11 @@ class PointServiceTest {
         // given
         long id = 1L;
         long amount = -100L;
+        UserPoint userPoint = UserPoint.empty(id);
 
         // when
+        when(userPointRepository.findById(id)).thenReturn(userPoint);
+
         // then
         assertThrows(IllegalArgumentException.class, () -> pointService.charge(id, amount));
     }
@@ -88,9 +98,11 @@ class PointServiceTest {
         // given
         long id = 1L;
         long amount = 100L;
+        UserPoint userPoint = UserPoint.empty(id);
 
         // when
-        when(userPointRepository.save(id, amount)).thenReturn(new UserPoint(id, amount, System.currentTimeMillis()));
+        when(userPointRepository.findById(id)).thenReturn(userPoint);
+        when(userPointRepository.save(userPoint.charge(amount))).thenReturn(new UserPoint(id, amount, anyLong()));
         FindUserPointApiResDto result = pointService.charge(id, amount);
 
         // then
@@ -103,8 +115,11 @@ class PointServiceTest {
         // given
         long id = 1L;
         long amount = -100L;
+        UserPoint userPoint = new UserPoint(id, 1000L, anyLong());
 
         // when
+        when(userPointRepository.findById(id)).thenReturn(userPoint);
+
         // then
         assertThrows(IllegalArgumentException.class, () -> pointService.use(id, amount));
     }
@@ -134,7 +149,7 @@ class PointServiceTest {
 
         // when
         when(userPointRepository.findById(id)).thenReturn(currentUserPoint);
-        when(userPointRepository.save(id, 0L)).thenReturn(new UserPoint(id, 0L, System.currentTimeMillis()));
+        when(userPointRepository.save(currentUserPoint.use(amount))).thenReturn(new UserPoint(id, 0L, anyLong()));
         FindUserPointApiResDto result = pointService.use(id, amount);
 
         // then

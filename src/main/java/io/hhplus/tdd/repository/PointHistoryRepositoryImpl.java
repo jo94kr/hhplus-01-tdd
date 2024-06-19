@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -15,12 +16,18 @@ public class PointHistoryRepositoryImpl implements PointHistoryRepository {
     private final PointHistoryTable pointHistoryTable;
 
     @Override
-    public PointHistory save(long userId, long amount, TransactionType type, long updateMillis) {
-        return pointHistoryTable.insert(userId, amount, type, updateMillis);
+    public List<PointHistory> findAllPointById(long id) {
+        if (id < 0) {
+            throw new IllegalArgumentException("id is an invalid.");
+        }
+        return pointHistoryTable.selectAllByUserId(id);
     }
 
     @Override
-    public List<PointHistory> findAllPointById(long id) {
-        return pointHistoryTable.selectAllByUserId(id);
+    public PointHistory save(long userId, long amount, TransactionType type, long updateMillis) {
+        if (userId < 0) {
+            throw new IllegalArgumentException("id is an invalid.");
+        }
+        return pointHistoryTable.insert(userId, amount, type, updateMillis);
     }
 }

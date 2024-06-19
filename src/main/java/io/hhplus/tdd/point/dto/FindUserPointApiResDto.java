@@ -8,7 +8,7 @@ public record FindUserPointApiResDto(
         Long updateMillis
 ) {
 
-    public static FindUserPointApiResDto of(UserPoint userPoint) {
+    public static FindUserPointApiResDto from(UserPoint userPoint) {
         return new FindUserPointApiResDto(
                 userPoint.id(),
                 userPoint.point(),

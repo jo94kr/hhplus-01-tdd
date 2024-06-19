@@ -21,27 +21,24 @@ public class PointService {
 
     /**
      * 포인트 조회
+     *
      * @param id 유저 ID
      * @return FindUserPointApiResDto
      */
     public FindUserPointApiResDto findPointById(long id) {
-        PointValidation.idValid(id);
-
         // 포인트 조회
         UserPoint userPoint = userPointRepository.findById(id);
-        PointValidation.userPointValid(userPoint);
 
-        return FindUserPointApiResDto.of(userPoint);
+        return FindUserPointApiResDto.from(userPoint);
     }
 
     /**
      * 포인트 내역 조회
+     *
      * @param id 유저 ID
      * @return List<FindPointHistoryApiResDto>
      */
     public List<FindPointHistoryApiResDto> findAllPointById(long id) {
-        PointValidation.idValid(id);
-
         // 포인트 내역 조회
         List<PointHistory> pointHistoryList = pointHistoryRepository.findAllPointById(id);
 
@@ -52,46 +49,41 @@ public class PointService {
 
     /**
      * 포인트 충전
-     * @param id 유저 ID
+     *
+     * @param id     유저 ID
      * @param amount 충전 포인트
      * @return FindUserPointApiResDto
      */
     public FindUserPointApiResDto charge(long id, long amount) {
-        PointValidation.idValid(id);
-        PointValidation.amountValid(amount);
+        // 기존 포인트 조회
+        UserPoint userPoint = userPointRepository.findById(id);
 
         // 포인트 충전
-        UserPoint userPoint = userPointRepository.save(id, amount);
+        UserPoint result = userPointRepository.save(userPoint.charge(amount));
 
         // 충전이력 등록
-        pointHistoryRepository.save(id, amount, TransactionType.CHARGE, userPoint.updateMillis());
+        pointHistoryRepository.save(id, amount, TransactionType.CHARGE, System.currentTimeMillis());
 
-        return FindUserPointApiResDto.of(userPoint);
+        return FindUserPointApiResDto.from(result);
     }
 
     /**
      * 포인트 사용
-     * @param id 유저 ID
+     *
+     * @param id     유저 ID
      * @param amount 사용 포인트
      * @return FindUserPointApiResDto
      */
     public FindUserPointApiResDto use(long id, long amount) {
-        PointValidation.idValid(id);
-        PointValidation.amountValid(amount);
-
         // 기존 포인트 조회
         UserPoint userPoint = userPointRepository.findById(id);
-        PointValidation.userPointValid(userPoint);
-
-        // 유효성 검사 - 보유 포인트 보다 많은 포인트 사용 불가
-        PointValidation.usePointValid(userPoint.point(), amount);
 
         // 포인트 차감
-        UserPoint result = userPointRepository.save(id, userPoint.point() - amount);
+        UserPoint result = userPointRepository.save(userPoint.use(amount));
 
         // 차감이력 등록
         pointHistoryRepository.save(id, amount, TransactionType.USE, result.updateMillis());
 
-        return FindUserPointApiResDto.of(result);
+        return FindUserPointApiResDto.from(result);
     }
 }

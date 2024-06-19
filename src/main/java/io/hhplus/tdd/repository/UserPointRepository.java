@@ -8,5 +8,5 @@ public interface UserPointRepository {
 
     UserPoint findById(long id);
 
-    UserPoint save(long id, long point);
+    UserPoint save(UserPoint userPoint);
 }
