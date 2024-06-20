@@ -183,7 +183,7 @@ class PointServiceTest {
                         System.currentTimeMillis()
                 ));
         when(pointHistoryRepository.findAllPointById(id)).thenReturn(pointHistoryList);
-        List<FindPointHistoryApiResDto> result = pointService.findAllPointById(id);
+        List<PointHistory> result = pointService.findAllPointById(id);
 
         // then
         assertThat(result).hasSize(3);
