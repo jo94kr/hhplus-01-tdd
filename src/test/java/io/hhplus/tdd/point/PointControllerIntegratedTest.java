@@ -1,6 +1,7 @@
 package io.hhplus.tdd.point;
 
 import io.hhplus.tdd.IntegratedTest;
+import io.hhplus.tdd.domain.PointHistory;
 import io.hhplus.tdd.domain.UserPoint;
 import io.restassured.RestAssured;
 import io.restassured.response.ExtractableResponse;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -45,6 +47,9 @@ class PointControllerIntegratedTest extends IntegratedTest {
     void history() {
         // given
         long id = 1L;
+        pointService.charge(id, 20L);
+        pointService.use(id, 10L);
+        pointService.charge(id, 10L);
 
         // when
         ExtractableResponse<Response> result = RestAssured
@@ -53,7 +58,9 @@ class PointControllerIntegratedTest extends IntegratedTest {
                 .then().log().all().extract();
 
         // then
+        List<PointHistory> pointHistoryList = pointService.findAllPointById(id);
         assertThat(result.statusCode()).isEqualTo(HttpStatus.OK.value());
+        assertThat(pointHistoryList).hasSize(3);
     }
 
     @Test
@@ -123,6 +130,53 @@ class PointControllerIntegratedTest extends IntegratedTest {
 
         // then
         UserPoint userPoint = pointService.findPointById(id);
-        assertThat(userPoint.point()).isEqualTo(0);
+        assertThat(userPoint.point()).isZero();
+    }
+
+    @Test
+    @DisplayName("포인트 충전과 사용을 동시에 호출한다.")
+    void concurrencyPointChargeAndUse() throws InterruptedException {
+        // given
+        long id = 1L;
+        long amount = 10L;
+
+        // when
+        int threadCount = 10;
+        ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
+        CountDownLatch latch = new CountDownLatch(20);
+
+        for (int i = 0; i < threadCount; i++) {
+            executorService.submit(() -> {
+                try {
+                    RestAssured
+                            .given().log().all()
+                            .body(amount)
+                            .contentType(MediaType.APPLICATION_JSON_VALUE)
+                            .when().patch(PATH + "/" + id + "/charge")
+                            .then().log().all().extract();
+                } finally {
+                    latch.countDown();
+                }
+            });
+        }
+        for (int i = 0; i < threadCount; i++) {
+            executorService.submit(() -> {
+                try {
+                    RestAssured
+                            .given().log().all()
+                            .body(amount)
+                            .contentType(MediaType.APPLICATION_JSON_VALUE)
+                            .when().patch(PATH + "/" + id + "/use")
+                            .then().log().all().extract();
+                } finally {
+                    latch.countDown();
+                }
+            });
+        }
+        latch.await();
+
+        // then
+        UserPoint userPoint = pointService.findPointById(id);
+        assertThat(userPoint.point()).isZero();
     }
 }
