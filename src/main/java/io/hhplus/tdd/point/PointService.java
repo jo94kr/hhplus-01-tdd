@@ -32,7 +32,7 @@ public class PointService {
      * 포인트 내역 조회
      *
      * @param id 유저 ID
-     * @return List<FindPointHistoryApiResDto>
+     * @return List<PointHistory>
      */
     public List<PointHistory> findAllPointById(long id) {
         // 포인트 내역 조회
