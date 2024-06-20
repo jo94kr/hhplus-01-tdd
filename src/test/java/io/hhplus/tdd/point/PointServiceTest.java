@@ -18,7 +18,9 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -103,6 +105,7 @@ class PointServiceTest {
         UserPoint result = pointService.charge(id, amount);
 
         // then
+        verify(pointHistoryRepository).save(eq(id), eq(amount), eq(TransactionType.CHARGE), anyLong());
         assertThat(result.point()).isEqualTo(amount);
     }
 
@@ -150,6 +153,7 @@ class PointServiceTest {
         UserPoint result = pointService.use(id, amount);
 
         // then
+        verify(pointHistoryRepository).save(eq(id), eq(amount), eq(TransactionType.USE), anyLong());
         assertThat(result.point()).isZero();
     }
 
