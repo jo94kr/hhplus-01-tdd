@@ -17,7 +17,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(PointController.class)
-class PointControllerTest {
+class PointControllerUnitTest {
 
     @Autowired
     MockMvc mockMvc;
