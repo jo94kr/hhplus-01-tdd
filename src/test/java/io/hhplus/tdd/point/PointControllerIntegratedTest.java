@@ -105,7 +105,6 @@ class PointControllerIntegratedTest extends IntegratedTest {
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
         CountDownLatch latch = new CountDownLatch(threadCount);
 
-        long startTime = System.currentTimeMillis();
         for (int i = 0; i < threadCount; i++) {
             executorService.submit(() -> {
                 try {
@@ -121,8 +120,6 @@ class PointControllerIntegratedTest extends IntegratedTest {
             });
         }
         latch.await();
-        long endTime = System.currentTimeMillis();
-        long durationTimeSec = endTime - startTime;
 
         // then
         UserPoint userPoint = pointService.findPointById(id);
