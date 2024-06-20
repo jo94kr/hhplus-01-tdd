@@ -18,8 +18,12 @@ public class PointService {
     private final PointHistoryRepository pointHistoryRepository;
     private final UserPointRepository userPointRepository;
 
-    // 동시성 보장용 lock
-    private final ReentrantLock lock = new ReentrantLock();
+    /**
+     * 동시성 보장용 lock
+     * fair -> true 사용시 가장 오래 기다린 쓰레드 부터 lock 을 획득
+     * 다만, 가장 오래된 쓰레드를 확인하는 과정이 추가되어 성능은 떨어짐
+     */
+    private final ReentrantLock lock = new ReentrantLock(true);
 
     /**
      * 포인트 조회
