@@ -36,7 +36,9 @@ public class PointController {
             @PathVariable(name = "id") long id
     ) {
         log.info("id: {}", id);
-        return pointService.findAllPointById(id);
+        return pointService.findAllPointById(id).stream()
+                .map(FindPointHistoryApiResDto::new)
+                .toList();
     }
 
     /**

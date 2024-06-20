@@ -3,7 +3,6 @@ package io.hhplus.tdd.point;
 import io.hhplus.tdd.domain.PointHistory;
 import io.hhplus.tdd.domain.TransactionType;
 import io.hhplus.tdd.domain.UserPoint;
-import io.hhplus.tdd.point.dto.FindPointHistoryApiResDto;
 import io.hhplus.tdd.repository.PointHistoryRepository;
 import io.hhplus.tdd.repository.UserPointRepository;
 import lombok.RequiredArgsConstructor;
@@ -35,13 +34,9 @@ public class PointService {
      * @param id 유저 ID
      * @return List<FindPointHistoryApiResDto>
      */
-    public List<FindPointHistoryApiResDto> findAllPointById(long id) {
+    public List<PointHistory> findAllPointById(long id) {
         // 포인트 내역 조회
-        List<PointHistory> pointHistoryList = pointHistoryRepository.findAllPointById(id);
-
-        return pointHistoryList.stream()
-                .map(FindPointHistoryApiResDto::new)
-                .toList();
+        return pointHistoryRepository.findAllPointById(id);
     }
 
     /**
