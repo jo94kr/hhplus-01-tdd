@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -178,5 +179,49 @@ class PointControllerIntegratedTest extends IntegratedTest {
         // then
         UserPoint userPoint = pointService.findPointById(id);
         assertThat(userPoint.point()).isZero();
+    }
+
+    @Test
+    @DisplayName("동시성 테스트 - CompletableFuture 사용해서 충전/차감 테스트")
+    void concurrencyPointChargeAndUse2() {
+        // given
+        long id = 1L;
+        long 보유포인트 = 100000L;
+        long 사용포인트 = 10000L;
+        long 충전포인트 = 4000L;
+        long 사용포인트2 = 100L;
+        pointService.charge(id, 보유포인트);
+
+        // when
+        CompletableFuture.allOf(
+                CompletableFuture.runAsync(() -> {
+                    RestAssured
+                            .given().log().all()
+                            .body(사용포인트)
+                            .contentType(MediaType.APPLICATION_JSON_VALUE)
+                            .when().patch(PATH + "/" + id + "/use")
+                            .then().log().all().extract();
+                }),
+                CompletableFuture.runAsync(() -> {
+                    RestAssured
+                            .given().log().all()
+                            .body(충전포인트)
+                            .contentType(MediaType.APPLICATION_JSON_VALUE)
+                            .when().patch(PATH + "/" + id + "/charge")
+                            .then().log().all().extract();
+                }),
+                CompletableFuture.runAsync(() -> {
+                    RestAssured
+                            .given().log().all()
+                            .body(사용포인트2)
+                            .contentType(MediaType.APPLICATION_JSON_VALUE)
+                            .when().patch(PATH + "/" + id + "/use")
+                            .then().log().all().extract();
+                })
+        ).join();
+
+        // then
+        UserPoint userPoint = pointService.findPointById(1);
+        assertThat(userPoint.point()).isEqualTo(보유포인트 - 사용포인트 + 충전포인트 - 사용포인트2);
     }
 }
