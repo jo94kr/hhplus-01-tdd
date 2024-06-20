@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Service
 @RequiredArgsConstructor
@@ -16,6 +17,9 @@ public class PointService {
 
     private final PointHistoryRepository pointHistoryRepository;
     private final UserPointRepository userPointRepository;
+
+    // 동시성 보장용 lock
+    private final ReentrantLock lock = new ReentrantLock();
 
     /**
      * 포인트 조회
@@ -47,16 +51,21 @@ public class PointService {
      * @return UserPoint
      */
     public UserPoint charge(long id, long amount) {
-        // 기존 포인트 조회
-        UserPoint userPoint = userPointRepository.findById(id);
+        lock.lock();
+        try {
+            // 기존 포인트 조회
+            UserPoint userPoint = userPointRepository.findById(id);
 
-        // 포인트 충전
-        UserPoint result = userPointRepository.save(userPoint.charge(amount));
+            // 포인트 충전
+            UserPoint result = userPointRepository.save(userPoint.charge(amount));
 
-        // 충전이력 등록
-        pointHistoryRepository.save(id, amount, TransactionType.CHARGE, System.currentTimeMillis());
+            // 충전이력 등록
+            pointHistoryRepository.save(id, amount, TransactionType.CHARGE, System.currentTimeMillis());
 
-        return result;
+            return result;
+        } finally {
+            lock.unlock();
+        }
     }
 
     /**
@@ -67,15 +76,20 @@ public class PointService {
      * @return UserPoint
      */
     public UserPoint use(long id, long amount) {
-        // 기존 포인트 조회
-        UserPoint userPoint = userPointRepository.findById(id);
+        lock.lock();
+        try {
+            // 기존 포인트 조회
+            UserPoint userPoint = userPointRepository.findById(id);
 
-        // 포인트 차감
-        UserPoint result = userPointRepository.save(userPoint.use(amount));
+            // 포인트 차감
+            UserPoint result = userPointRepository.save(userPoint.use(amount));
 
-        // 차감이력 등록
-        pointHistoryRepository.save(id, amount, TransactionType.USE, result.updateMillis());
+            // 차감이력 등록
+            pointHistoryRepository.save(id, amount, TransactionType.USE, result.updateMillis());
 
-        return result;
+            return result;
+        } finally {
+            lock.unlock();
+        }
     }
 }
