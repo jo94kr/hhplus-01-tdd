@@ -3,12 +3,15 @@ package io.hhplus.tdd.point;
 import io.hhplus.tdd.domain.PointHistory;
 import io.hhplus.tdd.domain.TransactionType;
 import io.hhplus.tdd.domain.UserPoint;
+import io.hhplus.tdd.exception.LockException;
 import io.hhplus.tdd.repository.PointHistoryRepository;
 import io.hhplus.tdd.repository.UserPointRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 @Service
@@ -18,12 +21,8 @@ public class PointService {
     private final PointHistoryRepository pointHistoryRepository;
     private final UserPointRepository userPointRepository;
 
-    /**
-     * 동시성 보장용 lock
-     * fair -> true 사용시 가장 오래 기다린 쓰레드 부터 lock 을 획득
-     * 다만, 가장 오래된 쓰레드를 확인하는 과정이 추가되어 성능은 떨어짐
-     */
-    private final ReentrantLock lock = new ReentrantLock(true);
+    // ConcurrentHashMap, ReentrantLock를 이용한 lock 구현
+    ConcurrentHashMap<Long, ReentrantLock> lockMap = new ConcurrentHashMap<>();
 
     /**
      * 포인트 조회
@@ -55,8 +54,11 @@ public class PointService {
      * @return UserPoint
      */
     public UserPoint charge(long id, long amount) {
-        lock.lock();
+        ReentrantLock lock = lockMap.computeIfAbsent(id, k -> new ReentrantLock());
         try {
+            if (!lock.tryLock(3, TimeUnit.SECONDS)) {
+                throw new LockException("lock acquisition failed");
+            }
             // 기존 포인트 조회
             UserPoint userPoint = userPointRepository.findById(id);
 
@@ -67,6 +69,8 @@ public class PointService {
             pointHistoryRepository.save(id, amount, TransactionType.CHARGE, System.currentTimeMillis());
 
             return result;
+        } catch (InterruptedException e) {
+            throw new LockException(e.getMessage());
         } finally {
             lock.unlock();
         }
@@ -80,8 +84,11 @@ public class PointService {
      * @return UserPoint
      */
     public UserPoint use(long id, long amount) {
-        lock.lock();
+        ReentrantLock lock = lockMap.computeIfAbsent(id, k -> new ReentrantLock());
         try {
+            if (!lock.tryLock(3, TimeUnit.SECONDS)) {
+                throw new LockException("lock acquisition failed");
+            }
             // 기존 포인트 조회
             UserPoint userPoint = userPointRepository.findById(id);
 
@@ -92,6 +99,8 @@ public class PointService {
             pointHistoryRepository.save(id, amount, TransactionType.USE, result.updateMillis());
 
             return result;
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         } finally {
             lock.unlock();
         }
