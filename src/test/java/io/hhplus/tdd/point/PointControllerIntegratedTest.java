@@ -188,8 +188,8 @@ class PointControllerIntegratedTest extends IntegratedTest {
         long id = 1L;
         long 보유포인트 = 100000L;
         long 사용포인트 = 10000L;
-        long 충전포인트 = 4000L;
-        long 사용포인트2 = 100L;
+        long 충전포인트 = 10000L;
+        long 사용포인트2 = 100000L;
         pointService.charge(id, 보유포인트);
 
         // when
