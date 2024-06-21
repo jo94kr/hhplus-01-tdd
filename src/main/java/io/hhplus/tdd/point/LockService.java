@@ -23,7 +23,7 @@ public class LockService {
             }
             return supplier.get();
         } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            throw new LockException(e.getMessage());
         } finally {
             lock.unlock();
         }

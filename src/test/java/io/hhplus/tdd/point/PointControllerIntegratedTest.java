@@ -89,7 +89,7 @@ class PointControllerIntegratedTest extends IntegratedTest {
 
     @Test
     @DisplayName("동시에 10포인트씩 10번 사용한다.")
-    void use() throws Exception {
+    void use() {
         // given
         long id = 1L;
         long amount = 10L;
@@ -100,14 +100,12 @@ class PointControllerIntegratedTest extends IntegratedTest {
         int cnt = 10;
         CompletableFuture<?>[] futureArray = new CompletableFuture[cnt];
         for (int i = 0; i < 10; i++) {
-            futureArray[i] = CompletableFuture.runAsync(() -> {
-                RestAssured
-                        .given().log().all()
-                        .body(amount)
-                        .contentType(MediaType.APPLICATION_JSON_VALUE)
-                        .when().patch(PATH + "/" + id + "/use")
-                        .then().log().all().extract();
-            });
+            futureArray[i] = CompletableFuture.runAsync(() -> RestAssured
+                    .given().log().all()
+                    .body(amount)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .when().patch(PATH + "/" + id + "/use")
+                    .then().log().all().extract());
         }
         CompletableFuture.allOf(futureArray).join();
 
