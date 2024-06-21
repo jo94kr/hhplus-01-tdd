@@ -14,9 +14,6 @@ import org.springframework.http.MediaType;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -66,37 +63,28 @@ class PointControllerIntegratedTest extends IntegratedTest {
 
     @Test
     @DisplayName("동시에 10포인트씩 10번 충전한다.")
-    void charge() throws InterruptedException {
+    void charge() {
         // given
         long id = 1L;
         long amount = 10L;
 
         // when
-        int threadCount = 10;
-        // 병렬 작업 처리
-        ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
-        // 일정 개수의 스레드가 끝난 후 다음 쓰레드가 실행될 수 있도록 대기시켜주는 역할
-        CountDownLatch latch = new CountDownLatch(threadCount);
-
-        for (int i = 0; i < threadCount; i++) {
-            executorService.submit(() -> {
-                try {
+        int cnt = 10;
+        CompletableFuture<?>[] futureArray = new CompletableFuture[cnt];
+        for (int i = 0; i < 10; i++) {
+            futureArray[i] = CompletableFuture.runAsync(() ->
                     RestAssured
-                            .given().log().all()
-                            .body(amount)
-                            .contentType(MediaType.APPLICATION_JSON_VALUE)
-                            .when().patch(PATH + "/" + id + "/charge")
-                            .then().log().all().extract();
-                } finally {
-                    latch.countDown(); // 스레드가 끝날 때 마다 카운트 감소
-                }
-            });
+                    .given().log().all()
+                    .body(amount)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .when().patch(PATH + "/" + id + "/charge")
+                    .then().log().all().extract());
         }
-        latch.await(); // 대기 상태 해제
+        CompletableFuture.allOf(futureArray).join();
 
         // then
         UserPoint userPoint = pointService.findPointById(id);
-        assertThat(userPoint.point()).isEqualTo(amount * threadCount);
+        assertThat(userPoint.point()).isEqualTo(amount * 10);
     }
 
     @Test
@@ -109,25 +97,19 @@ class PointControllerIntegratedTest extends IntegratedTest {
         pointService.charge(id, 100L);
 
         // when
-        int threadCount = 10;
-        ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
-        CountDownLatch latch = new CountDownLatch(threadCount);
-
-        for (int i = 0; i < threadCount; i++) {
-            executorService.submit(() -> {
-                try {
-                    RestAssured
-                            .given().log().all()
-                            .body(amount)
-                            .contentType(MediaType.APPLICATION_JSON_VALUE)
-                            .when().patch(PATH + "/" + id + "/use")
-                            .then().log().all().extract();
-                } finally {
-                    latch.countDown();
-                }
+        int cnt = 10;
+        CompletableFuture<?>[] futureArray = new CompletableFuture[cnt];
+        for (int i = 0; i < 10; i++) {
+            futureArray[i] = CompletableFuture.runAsync(() -> {
+                RestAssured
+                        .given().log().all()
+                        .body(amount)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .when().patch(PATH + "/" + id + "/use")
+                        .then().log().all().extract();
             });
         }
-        latch.await();
+        CompletableFuture.allOf(futureArray).join();
 
         // then
         UserPoint userPoint = pointService.findPointById(id);
@@ -135,54 +117,7 @@ class PointControllerIntegratedTest extends IntegratedTest {
     }
 
     @Test
-    @DisplayName("포인트 충전과 사용을 동시에 호출한다.")
-    void concurrencyPointChargeAndUse() throws InterruptedException {
-        // given
-        long id = 1L;
-        long amount = 10L;
-
-        // when
-        int threadCount = 10;
-        ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
-        CountDownLatch latch = new CountDownLatch(20);
-
-        for (int i = 0; i < threadCount; i++) {
-            executorService.submit(() -> {
-                try {
-                    RestAssured
-                            .given().log().all()
-                            .body(amount)
-                            .contentType(MediaType.APPLICATION_JSON_VALUE)
-                            .when().patch(PATH + "/" + id + "/charge")
-                            .then().log().all().extract();
-                } finally {
-                    latch.countDown();
-                }
-            });
-        }
-        for (int i = 0; i < threadCount; i++) {
-            executorService.submit(() -> {
-                try {
-                    RestAssured
-                            .given().log().all()
-                            .body(amount)
-                            .contentType(MediaType.APPLICATION_JSON_VALUE)
-                            .when().patch(PATH + "/" + id + "/use")
-                            .then().log().all().extract();
-                } finally {
-                    latch.countDown();
-                }
-            });
-        }
-        latch.await();
-
-        // then
-        UserPoint userPoint = pointService.findPointById(id);
-        assertThat(userPoint.point()).isZero();
-    }
-
-    @Test
-    @DisplayName("동시성 테스트 - CompletableFuture 사용해서 충전/차감 테스트")
+    @DisplayName("동시성 테스트 - 동시에 포인트 충전/차감 한다.")
     void concurrencyPointChargeAndUse2() {
         // given
         long id = 1L;
@@ -194,30 +129,27 @@ class PointControllerIntegratedTest extends IntegratedTest {
 
         // when
         CompletableFuture.allOf(
-                CompletableFuture.runAsync(() -> {
-                    RestAssured
-                            .given().log().all()
-                            .body(사용포인트)
-                            .contentType(MediaType.APPLICATION_JSON_VALUE)
-                            .when().patch(PATH + "/" + id + "/use")
-                            .then().log().all().extract();
-                }),
-                CompletableFuture.runAsync(() -> {
-                    RestAssured
-                            .given().log().all()
-                            .body(충전포인트)
-                            .contentType(MediaType.APPLICATION_JSON_VALUE)
-                            .when().patch(PATH + "/" + id + "/charge")
-                            .then().log().all().extract();
-                }),
-                CompletableFuture.runAsync(() -> {
-                    RestAssured
-                            .given().log().all()
-                            .body(사용포인트2)
-                            .contentType(MediaType.APPLICATION_JSON_VALUE)
-                            .when().patch(PATH + "/" + id + "/use")
-                            .then().log().all().extract();
-                })
+                CompletableFuture.runAsync(() ->
+                        RestAssured
+                                .given().log().all()
+                                .body(사용포인트)
+                                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                                .when().patch(PATH + "/" + id + "/use")
+                                .then().log().all().extract()),
+                CompletableFuture.runAsync(() ->
+                        RestAssured
+                                .given().log().all()
+                                .body(충전포인트)
+                                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                                .when().patch(PATH + "/" + id + "/charge")
+                                .then().log().all().extract()),
+                CompletableFuture.runAsync(() ->
+                        RestAssured
+                                .given().log().all()
+                                .body(사용포인트2)
+                                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                                .when().patch(PATH + "/" + id + "/use")
+                                .then().log().all().extract())
         ).join();
 
         // then

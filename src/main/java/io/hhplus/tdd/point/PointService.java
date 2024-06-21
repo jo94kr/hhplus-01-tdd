@@ -3,16 +3,12 @@ package io.hhplus.tdd.point;
 import io.hhplus.tdd.domain.PointHistory;
 import io.hhplus.tdd.domain.TransactionType;
 import io.hhplus.tdd.domain.UserPoint;
-import io.hhplus.tdd.exception.LockException;
 import io.hhplus.tdd.repository.PointHistoryRepository;
 import io.hhplus.tdd.repository.UserPointRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.ReentrantLock;
 
 @Service
 @RequiredArgsConstructor
@@ -22,7 +18,7 @@ public class PointService {
     private final UserPointRepository userPointRepository;
 
     // ConcurrentHashMap, ReentrantLock를 이용한 lock 구현
-    ConcurrentHashMap<Long, ReentrantLock> lockMap = new ConcurrentHashMap<>();
+    private final LockService lockService;
 
     /**
      * 포인트 조회
@@ -54,11 +50,7 @@ public class PointService {
      * @return UserPoint
      */
     public UserPoint charge(long id, long amount) {
-        ReentrantLock lock = lockMap.computeIfAbsent(id, k -> new ReentrantLock());
-        try {
-            if (!lock.tryLock(3, TimeUnit.SECONDS)) {
-                throw new LockException("lock acquisition failed");
-            }
+        return lockService.lock(id, () -> {
             // 기존 포인트 조회
             UserPoint userPoint = userPointRepository.findById(id);
 
@@ -69,11 +61,7 @@ public class PointService {
             pointHistoryRepository.save(id, amount, TransactionType.CHARGE, System.currentTimeMillis());
 
             return result;
-        } catch (InterruptedException e) {
-            throw new LockException(e.getMessage());
-        } finally {
-            lock.unlock();
-        }
+        });
     }
 
     /**
@@ -84,11 +72,7 @@ public class PointService {
      * @return UserPoint
      */
     public UserPoint use(long id, long amount) {
-        ReentrantLock lock = lockMap.computeIfAbsent(id, k -> new ReentrantLock());
-        try {
-            if (!lock.tryLock(3, TimeUnit.SECONDS)) {
-                throw new LockException("lock acquisition failed");
-            }
+        return lockService.lock(id, () -> {
             // 기존 포인트 조회
             UserPoint userPoint = userPointRepository.findById(id);
 
@@ -99,10 +83,6 @@ public class PointService {
             pointHistoryRepository.save(id, amount, TransactionType.USE, result.updateMillis());
 
             return result;
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        } finally {
-            lock.unlock();
-        }
+        });
     }
 }
