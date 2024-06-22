@@ -17,7 +17,7 @@ public class PointHistoryRepositoryImpl implements PointHistoryRepository {
 
     @Override
     public List<PointHistory> findAllPointById(long id) {
-        if (id < 0) {
+        if (id <= 0) {
             throw new IllegalArgumentException("id is an invalid.");
         }
         return pointHistoryTable.selectAllByUserId(id);
