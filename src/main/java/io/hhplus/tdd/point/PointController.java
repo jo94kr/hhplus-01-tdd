@@ -49,7 +49,7 @@ public class PointController {
             @PathVariable(name = "id") long id,
             @RequestBody long amount
     ) {
-        log.info("id: {}, amount: {}", id, amount);
+        log.info("charge - id: {}, amount: {}", id, amount);
         return FindUserPointApiResDto.of(pointService.charge(id, amount));
     }
 
@@ -61,7 +61,7 @@ public class PointController {
             @PathVariable(name = "id") long id,
             @RequestBody long amount
     ) {
-        log.info("id: {}, amount: {}", id, amount);
+        log.info("use - id: {}, amount: {}", id, amount);
         return FindUserPointApiResDto.of(pointService.use(id, amount));
     }
 }
