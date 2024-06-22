@@ -67,7 +67,7 @@ class PointServiceTest {
     @DisplayName("유효하지 않은 아이디로 사용자의 포인트 조회시 예외 발생")
     void findPointByInvalidId() {
         // given
-        long id = -1L;
+        long id = 0L;
 
         // when
         when(userPointRepository.findById(id)).thenThrow(IllegalArgumentException.class);
@@ -159,7 +159,7 @@ class PointServiceTest {
 
     @Test
     @DisplayName("포인트 내역 조회")
-    void pointServiceTest() {
+    void findAllHistoryById() {
         // given
         long id = 1L;
 

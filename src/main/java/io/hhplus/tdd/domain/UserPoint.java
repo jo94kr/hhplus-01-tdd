@@ -8,7 +8,7 @@ public record UserPoint(
         long updateMillis
 ) {
     public UserPoint {
-        if (this.id() < 0) {
+        if (this.id() <= 0) {
             throw new IllegalArgumentException("id is an invalid.");
         }
     }
