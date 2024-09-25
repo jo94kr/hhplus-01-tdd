@@ -4,7 +4,6 @@ import io.hhplus.tdd.domain.PointHistory;
 import io.hhplus.tdd.domain.TransactionType;
 import io.hhplus.tdd.domain.UserPoint;
 import io.hhplus.tdd.exception.NotFoundException;
-import io.hhplus.tdd.point.dto.FindPointHistoryApiResDto;
 import io.hhplus.tdd.repository.PointHistoryRepository;
 import io.hhplus.tdd.repository.UserPointRepository;
 import org.junit.jupiter.api.DisplayName;

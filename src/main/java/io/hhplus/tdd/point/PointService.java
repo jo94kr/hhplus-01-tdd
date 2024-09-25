@@ -17,6 +17,9 @@ public class PointService {
     private final PointHistoryRepository pointHistoryRepository;
     private final UserPointRepository userPointRepository;
 
+    // ConcurrentHashMap, ReentrantLock를 이용한 lock 구현
+    private final LockService lockService;
+
     /**
      * 포인트 조회
      *
@@ -47,16 +50,18 @@ public class PointService {
      * @return UserPoint
      */
     public UserPoint charge(long id, long amount) {
-        // 기존 포인트 조회
-        UserPoint userPoint = userPointRepository.findById(id);
+        return lockService.lock(id, () -> {
+            // 기존 포인트 조회
+            UserPoint userPoint = userPointRepository.findById(id);
 
-        // 포인트 충전
-        UserPoint result = userPointRepository.save(userPoint.charge(amount));
+            // 포인트 충전
+            UserPoint result = userPointRepository.save(userPoint.charge(amount));
 
-        // 충전이력 등록
-        pointHistoryRepository.save(id, amount, TransactionType.CHARGE, System.currentTimeMillis());
+            // 충전이력 등록
+            pointHistoryRepository.save(id, amount, TransactionType.CHARGE, System.currentTimeMillis());
 
-        return result;
+            return result;
+        });
     }
 
     /**
@@ -67,15 +72,17 @@ public class PointService {
      * @return UserPoint
      */
     public UserPoint use(long id, long amount) {
-        // 기존 포인트 조회
-        UserPoint userPoint = userPointRepository.findById(id);
+        return lockService.lock(id, () -> {
+            // 기존 포인트 조회
+            UserPoint userPoint = userPointRepository.findById(id);
 
-        // 포인트 차감
-        UserPoint result = userPointRepository.save(userPoint.use(amount));
+            // 포인트 차감
+            UserPoint result = userPointRepository.save(userPoint.use(amount));
 
-        // 차감이력 등록
-        pointHistoryRepository.save(id, amount, TransactionType.USE, result.updateMillis());
+            // 차감이력 등록
+            pointHistoryRepository.save(id, amount, TransactionType.USE, result.updateMillis());
 
-        return result;
+            return result;
+        });
     }
 }
