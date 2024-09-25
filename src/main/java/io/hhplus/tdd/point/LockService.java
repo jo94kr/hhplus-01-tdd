@@ -14,7 +14,7 @@ public class LockService {
     private final ConcurrentHashMap<Long, ReentrantLock> lockMap = new ConcurrentHashMap<>();
 
     public <T> T lock(long id, Supplier<T> supplier) {
-        ReentrantLock lock = lockMap.computeIfAbsent(id, k -> new ReentrantLock());
+        ReentrantLock lock = lockMap.computeIfAbsent(id, k -> new ReentrantLock(true));
         boolean isLock;
         try {
             isLock = lock.tryLock(1, TimeUnit.MINUTES);
